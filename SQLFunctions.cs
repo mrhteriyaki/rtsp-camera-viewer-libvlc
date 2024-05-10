@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace rtsp_camera_viewer
+{
+    public class SQLFunctions
+    {
+        public static string SQLConnectionString = "Data Source=192.168.88.3,1433;Initial Catalog=HomeAutomation;Integrated Security=true";
+
+        public static List<CameraInfo> GetCameraList()
+        {
+            List<CameraInfo> CameraSourceList = new List<CameraInfo>();
+            SqlConnection SQLConn = new SqlConnection(SQLConnectionString);
+            SQLConn.Open();
+            SqlCommand Sqlcmd = new SqlCommand("SELECT [rtsp],rotate from tblCameras order by displayorder_console ASC", SQLConn);
+            SqlDataReader SR = Sqlcmd.ExecuteReader();
+            while (SR.Read())
+            {
+                if (string.IsNullOrEmpty(SR[0].ToString()))
+                {
+                    MessageBox.Show("RTSP Source Missing");
+                }
+                else
+                {
+                    CameraSourceList.Add(new CameraInfo(SR[0].ToString(), (int)SR[1]));
+                }
+            }
+            SQLConn.Close();
+            return CameraSourceList;
+        }
+    }
+}

@@ -23,7 +23,7 @@ namespace rtsp_camera_viewer
         }
 
         private bool AudioEnabled = false;
-        private bool CamerasOff = true;
+        private bool CamerasEnabled = false;
         private bool FullScreenSize = false;
 
         private List<CameraInfo> CameraSourceList = new List<CameraInfo>();
@@ -34,10 +34,10 @@ namespace rtsp_camera_viewer
         const int LocYStart = 45;
 
         private void Form1_Load(object sender, EventArgs e)
-        {           
+        {
             //Failures here may indicate 32-bit build in use.
             Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
-            
+
             LoadVideoStreams();
             RefreshCameras();
             WPAI = new WindowsAPI(this);
@@ -55,15 +55,20 @@ namespace rtsp_camera_viewer
         public void RefreshCameras()
         {
             CameraOff();
-            CamerasOff = false;
-            foreach (var Camera in CameraSourceList)
+            CamerasEnabled = true;
+            foreach (CameraInfo Camera in CameraSourceList)
             {
                 List<string> ArgsList = new List<string>
                 {
                     "--rtsp-tcp",
-                    ":network-caching=1000",
+                    //"--network-caching=1000",
                     "--aout=directsound" //stops working in vlc4, used to fix audio volume issue applying to all video views when set on 1.
                 };
+
+                if (Camera.Rotate != 0) //Rotate in use, enable transform.
+                {
+                    ArgsList.Add("--video-filter=transform");
+                }
 
                 if (Camera.Rotate == 90)
                 {
@@ -92,7 +97,7 @@ namespace rtsp_camera_viewer
                 // Use thread to trigger load of each camera.
                 ThreadPool.QueueUserWorkItem(state =>
                 {
-                    StartwithVol0(ref _VideoView, Camera.Address);
+                    PlayVLC(ref _VideoView, Camera.Address);
                 });
 
             }
@@ -100,7 +105,7 @@ namespace rtsp_camera_viewer
             ResizeVlcControls();
         }
 
-        public void StartwithVol0(ref VideoView VLCControl, string Address)
+        public void PlayVLC(ref VideoView VLCControl, string Address)
         {
             VLCControl.MediaPlayer.Volume = 0;
             VLCControl.MediaPlayer.Play();
@@ -114,10 +119,10 @@ namespace rtsp_camera_viewer
             }
 
             // Re-enable audio if swapping from fullscreen.
-            foreach (var Cam in vlc_list)
+            foreach (VideoView Cam in vlc_list)
             {
                 Cam.Visible = true;
-                if (AudioEnabled == true)
+                if (AudioEnabled)
                 {
                     Cam.MediaPlayer.Volume = 100;
                 }
@@ -133,53 +138,90 @@ namespace rtsp_camera_viewer
             int LocY = LocYStart;
 
             // Set number of columns for land/port.
-            int Columns = 2;
+            int MaxColumns = 2;
             if (Width > Height)
             {
                 // Landscape
-                Columns = 3;
+                MaxColumns = 3;
             }
 
-            double RowCount = Math.Ceiling(vlc_list.Count / (double)Columns);
+           
+            int MaxCells = vlc_list.Count;
+            int MaxRows = (int)Math.Ceiling(MaxCells / (double)MaxColumns);
+
             // Camera Ratio 16:9 - Calculate ratio:
-            double MaxHeight = (Height - (LocY + 50)) / RowCount / 9d; // Divide height by number of rows (rounded up), total size minus start Y offset.
-            double MaxWidth = (Width - (LocX + 50)) / (double)Columns / 16d;
+            double MaxHeight = (Height - (LocY + 50)) / MaxRows / 9d; // Divide height by number of rows (rounded up), total size minus start Y offset.
+            double MaxWidth = (Width - (LocX + 50)) / (double)MaxColumns / 16d;
 
-            int RatioMultiY = (int)Math.Round(Math.Round(MaxHeight) - 1d); // Size by availble height.
-            double RatioMultiX = Math.Round(MaxWidth); // Size by available width.
+            int RatioMultiY = (int)Math.Round(MaxHeight); // Size by availble height.
+            int RatioMultiX = (int)Math.Round(MaxWidth); // Size by available width.
 
-            int RatioMulti = (int)Math.Round(Math.Min(RatioMultiY, RatioMultiX)); // Pick lowest ratio to ensure does not go over edge.
+            int RatioMulti = Math.Min(RatioMultiY, RatioMultiX); // Pick lowest ratio to ensure does not go over edge.
+            Size ViewSize = new Size(RatioMulti * 16, RatioMulti * 9);
 
-
-            // Dim ViewSizeMulti As Integer = (Me.Width * 0.06) / Columns
-            var ViewSize = new Size(RatioMulti * 16, RatioMulti * 9);
-
-            int Counter = 0;
             int ColumnCount = 0;
+            int RowCount = 1;
+            List<int> SkipCells = new List<int>();
+            int SkippedCells = 0;
 
-            foreach (var VlcItem in vlc_list)
+            for (int i = 0; i < MaxCells; i++) //Loop through each cell position.
             {
-                if (ColumnCount == Columns)
+                if (!SkipCells.Contains(i))
                 {
-                    LocX = LocXStart;
+                    int vi = i - SkippedCells;
+                    if (vi >= CameraSourceList.Count)
+                    {
+                        continue; //avoid index exception.
+                    }
+                    if (CameraSourceList[vi].Rotate == 90 || CameraSourceList[vi].Rotate == 270)
+                    {
+                        //Span up to 3 rows when rotated.
+                        int spanSize = 3;
+                        if (MaxRows < spanSize)
+                        {
+                            spanSize = MaxRows;
+                        }
+                        Console.WriteLine("Max rows:" + MaxRows + " max cols: " + MaxColumns);
+
+                        if (spanSize == 2)
+                        {
+                            SkipCells.Add(i + MaxColumns);
+                            MaxCells++;
+                        }
+                        else if (spanSize == 3)
+                        {
+                            SkipCells.Add(i + MaxColumns);
+                            SkipCells.Add(i + (MaxColumns * 2));
+                            MaxCells += 2;
+                        }
+
+                        vlc_list[vi].Size = new Size(ViewSize.Width, (ViewSize.Height * spanSize));
+                    }
+                    else
+                    {
+                        vlc_list[vi].Size = ViewSize;
+                    }
+                    vlc_list[vi].Location = new Point(LocX, LocY);
+                }
+                else
+                {
+                    SkippedCells++;
+                }
+                LocX += ViewSize.Width;
+                ColumnCount++;
+                if (ColumnCount == MaxColumns) //Next row.
+                {
+                    RowCount++;
                     LocY += ViewSize.Height;
                     ColumnCount = 0;
+                    LocX = LocXStart;
                 }
-                VlcItem.Size = ViewSize;
-                VlcItem.Location = new Point(LocX, LocY);
-                Counter = +1;
-                ColumnCount += 1;
-                LocX += ViewSize.Width;
             }
-
-
-
-
         }
 
         private void EnableFullScreen(VideoView vlc_control)
         {
-            foreach (var Cam in vlc_list)
+            foreach (VideoView Cam in vlc_list)
             {
                 if (!ReferenceEquals(Cam, vlc_control))
                 {
@@ -222,22 +264,13 @@ namespace rtsp_camera_viewer
                 //Enable Audio.
                 AudioEnabled = true;
                 btnAudio.Text = "Disable Audio";
-                if (FullScreenSize == false)
+                if (FullScreenSize)
                 {
-                    foreach (VideoView cam in vlc_list)
-                    {
-                        cam.MediaPlayer.Volume = 100;
-                    }
+                    vlc_list.FirstOrDefault(cam => cam.Visible).MediaPlayer.Volume = 100;
                 }
                 else
                 {
-                    foreach (VideoView cam in vlc_list)
-                    {
-                        if (cam.Visible == true)
-                        {
-                            cam.MediaPlayer.Volume = 100;
-                        }
-                    }
+                    vlc_list.ForEach(cam => cam.MediaPlayer.Volume = 100);
                 }
             }
 
@@ -253,11 +286,10 @@ namespace rtsp_camera_viewer
             CameraOff();
         }
 
-        
+
         public void CameraOff()
         {
-            CamerasOff = true;
-
+            CamerasEnabled = false;
             foreach (VideoView vlc_videoview in vlc_list)
             {
                 ThreadPool.QueueUserWorkItem(state =>
@@ -266,7 +298,6 @@ namespace rtsp_camera_viewer
                 });
                 Controls.Remove(vlc_videoview);
             }
-
             vlc_list.Clear();
         }
 
@@ -283,10 +314,10 @@ namespace rtsp_camera_viewer
             RefreshCameras();
         }
 
-        
+
         public void ClickCamera(Point RelativePoint)
         {
-            if (CamerasOff == false)
+            if (CamerasEnabled)
             {
                 if (FullScreenSize)
                 {

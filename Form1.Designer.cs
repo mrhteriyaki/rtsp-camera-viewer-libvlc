@@ -31,6 +31,7 @@
             this.btnOff = new System.Windows.Forms.Button();
             this.btnRefresh = new System.Windows.Forms.Button();
             this.btnAudio = new System.Windows.Forms.Button();
+            this.btnM = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnOff
@@ -38,7 +39,7 @@
             this.btnOff.BackColor = System.Drawing.Color.Black;
             this.btnOff.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnOff.ForeColor = System.Drawing.Color.White;
-            this.btnOff.Location = new System.Drawing.Point(245, 2);
+            this.btnOff.Location = new System.Drawing.Point(251, 10);
             this.btnOff.Name = "btnOff";
             this.btnOff.Size = new System.Drawing.Size(115, 30);
             this.btnOff.TabIndex = 9;
@@ -51,7 +52,7 @@
             this.btnRefresh.BackColor = System.Drawing.Color.Black;
             this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefresh.ForeColor = System.Drawing.Color.White;
-            this.btnRefresh.Location = new System.Drawing.Point(124, 2);
+            this.btnRefresh.Location = new System.Drawing.Point(130, 10);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(115, 30);
             this.btnRefresh.TabIndex = 8;
@@ -64,7 +65,7 @@
             this.btnAudio.BackColor = System.Drawing.Color.Black;
             this.btnAudio.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAudio.ForeColor = System.Drawing.Color.White;
-            this.btnAudio.Location = new System.Drawing.Point(3, 2);
+            this.btnAudio.Location = new System.Drawing.Point(9, 10);
             this.btnAudio.Name = "btnAudio";
             this.btnAudio.Size = new System.Drawing.Size(115, 30);
             this.btnAudio.TabIndex = 7;
@@ -72,12 +73,27 @@
             this.btnAudio.UseVisualStyleBackColor = false;
             this.btnAudio.Click += new System.EventHandler(this.btnAudio_Click);
             // 
+            // btnM
+            // 
+            this.btnM.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnM.BackColor = System.Drawing.Color.Black;
+            this.btnM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnM.ForeColor = System.Drawing.Color.White;
+            this.btnM.Location = new System.Drawing.Point(1318, 10);
+            this.btnM.Name = "btnM";
+            this.btnM.Size = new System.Drawing.Size(40, 30);
+            this.btnM.TabIndex = 10;
+            this.btnM.Text = "M";
+            this.btnM.UseVisualStyleBackColor = false;
+            this.btnM.Click += new System.EventHandler(this.btnM_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(1369, 928);
+            this.Controls.Add(this.btnM);
             this.Controls.Add(this.btnOff);
             this.Controls.Add(this.btnRefresh);
             this.Controls.Add(this.btnAudio);
@@ -95,6 +111,7 @@
         internal System.Windows.Forms.Button btnOff;
         internal System.Windows.Forms.Button btnRefresh;
         internal System.Windows.Forms.Button btnAudio;
+        internal System.Windows.Forms.Button btnM;
     }
 }
 

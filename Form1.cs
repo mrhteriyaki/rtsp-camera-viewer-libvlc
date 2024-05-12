@@ -350,5 +350,22 @@ namespace rtsp_camera_viewer
         {
             WPAI.StopMouseHook();
         }
+
+
+        private void btnM_Click(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Maximized)
+            {
+                // Change to normal mode.
+                WindowState = FormWindowState.Normal;
+                FormBorderStyle = FormBorderStyle.Sizable;
+            }
+            else
+            {
+                // Change to fullscreen.
+                WindowState = FormWindowState.Maximized;
+                FormBorderStyle = FormBorderStyle.None;
+            }
+        }
     }
 }

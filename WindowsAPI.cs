@@ -17,7 +17,22 @@ namespace rtsp_camera_viewer
         {
             localForm = form;
         }
-        
+
+
+        [DllImport("user32.dll")]
+        public static extern int ShowWindow(int hwnd, SW command);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        public const int SWP_SHOWWINDOW = 0x0040;
+        public static readonly IntPtr HWND_TOP = new IntPtr(0);
+
+        public enum SW
+        {
+            SW_HIDE = 0,
+            SW_SHOW = 5
+        }
 
 
         // Constants for mouse events
@@ -173,7 +188,7 @@ namespace rtsp_camera_viewer
 
         // Function to find a window by its title
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
 
 

@@ -11,13 +11,15 @@ namespace rtsp_camera_viewer
     public class SQLFunctions
     {
         public static string SQLConnectionString = "Data Source=192.168.88.3,1433;Initial Catalog=HomeAutomation;Integrated Security=true";
+        public static string SqlCommandText = "SELECT [rtsp],rotate from tblCameras order by displayorder_console ASC";
+
 
         public static List<CameraInfo> GetCameraList()
         {
             List<CameraInfo> CameraSourceList = new List<CameraInfo>();
             SqlConnection SQLConn = new SqlConnection(SQLConnectionString);
             SQLConn.Open();
-            SqlCommand Sqlcmd = new SqlCommand("SELECT [rtsp],rotate from tblCameras order by displayorder_console ASC", SQLConn);
+            SqlCommand Sqlcmd = new SqlCommand(SqlCommandText, SQLConn);
             SqlDataReader SR = Sqlcmd.ExecuteReader();
             while (SR.Read())
             {

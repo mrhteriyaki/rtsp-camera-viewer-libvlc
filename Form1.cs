@@ -8,6 +8,9 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +30,7 @@ namespace rtsp_camera_viewer
         private bool FullScreenSize = false;
 
         private List<CameraInfo> CameraSourceList = new List<CameraInfo>();
-        private List<VideoView> vlc_list = new List<VideoView>();
+        private VideoView[] vlc_list;
         WindowsAPI WPAI;
 
         const int LocXStart = 5;
@@ -39,15 +42,24 @@ namespace rtsp_camera_viewer
             Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
 
             LoadVideoStreams();
-            RefreshCameras();
             WPAI = new WindowsAPI(this);
             WPAI.StartMouseHook();
+            tmrWatch.Enabled = true;
+            CamerasEnabled = true;
         }
 
 
         public void LoadVideoStreams()
         {
             CameraSourceList = SQLFunctions.GetCameraList();
+
+            //Init objects.
+            vlc_list = new VideoView[CameraSourceList.Count];
+            for (int Index = 0; Index < CameraSourceList.Count; Index++)
+            {
+                RefreshCamera(Index);
+            }
+            ResizeVlcControls();
 
             //Optional add ways to load camera feeds.
         }
@@ -56,64 +68,65 @@ namespace rtsp_camera_viewer
         {
             CameraOff();
             CamerasEnabled = true;
-            foreach (CameraInfo Camera in CameraSourceList)
+            for (int Index = 0; Index < CameraSourceList.Count; Index++)
             {
-                List<string> ArgsList = new List<string>
+                RefreshCamera(Index);
+            }
+            ResizeVlcControls();
+        }
+
+        public void RefreshCamera(int Index)
+        {
+            CameraInfo Camera = CameraSourceList[Index];
+            List<string> ArgsList = new List<string>
                 {
                     "--rtsp-tcp",
                     //"--network-caching=1000",
                     "--aout=directsound" //stops working in vlc4, used to fix audio volume issue applying to all video views when set on 1.
                 };
 
-                if (Camera.Rotate != 0) //Rotate in use, enable transform.
-                {
-                    ArgsList.Add("--video-filter=transform");
-                }
-
-                if (Camera.Rotate == 90)
-                {
-                    ArgsList.Add("--transform-type=90");
-                }
-                else if (Camera.Rotate == 180)
-                {
-                    ArgsList.Add("--transform-type=180");
-                }
-                else if (Camera.Rotate == 270)
-                {
-                    ArgsList.Add("--transform-type=270");
-                }
-
-                LibVLC _LibVLC = new LibVLC(ArgsList.ToArray());
-                VideoView _VideoView = new VideoView();
-                vlc_list.Add(_VideoView);
-                _VideoView.MediaPlayer = new MediaPlayer(_LibVLC);
-                _VideoView.MediaPlayer.Media = new Media(_LibVLC, Camera.Address, FromType.FromLocation);
-                // Required for form click event to work.
-                // vlccontrol.Video.IsMouseInputEnabled = False
-                // vlccontrol.Video.IsKeyInputEnabled = False
-
-                Controls.Add(_VideoView);
-
-                // Use thread to trigger load of each camera.
-                ThreadPool.QueueUserWorkItem(state =>
-                {
-                    PlayVLC(ref _VideoView, Camera.Address);
-                });
-
+            if (Camera.Rotate != 0) //Rotate in use, enable transform.
+            {
+                ArgsList.Add("--video-filter=transform");
             }
 
-            ResizeVlcControls();
+
+            if (Camera.Rotate == 90)
+            {
+                ArgsList.Add("--transform-type=90");
+            }
+            else if (Camera.Rotate == 180)
+            {
+                ArgsList.Add("--transform-type=180");
+            }
+            else if (Camera.Rotate == 270)
+            {
+                ArgsList.Add("--transform-type=270");
+            }
+
+            LibVLC _LibVLC = new LibVLC(ArgsList.ToArray());
+            vlc_list[Index] = new VideoView();
+            vlc_list[Index].MediaPlayer = new MediaPlayer(_LibVLC);
+            vlc_list[Index].MediaPlayer.Media = new Media(_LibVLC, Camera.Address, FromType.FromLocation);
+            // Required for form click event to work.
+            // vlccontrol.Video.IsMouseInputEnabled = False
+            // vlccontrol.Video.IsKeyInputEnabled = False
+
+            
+            Program.frm1.Invoke(new MethodInvoker(delegate
+            {
+                Controls.Add(vlc_list[Index]);
+            }));
+
+            vlc_list[Index].MediaPlayer.Volume = 0;
+            vlc_list[Index].MediaPlayer.Play();
+
         }
 
-        public void PlayVLC(ref VideoView VLCControl, string Address)
-        {
-            VLCControl.MediaPlayer.Volume = 0;
-            VLCControl.MediaPlayer.Play();
-        }
 
         public void ResizeVlcControls()
         {
-            if (vlc_list.Count == 0)
+            if (vlc_list.Length == 0)
             {
                 return; // skip if not active
             }
@@ -130,6 +143,7 @@ namespace rtsp_camera_viewer
                 {
                     Cam.MediaPlayer.Volume = 0;
                 }
+                Cam.BringToFront();
             }
             FullScreenSize = false; // Clear fullscreen property.
 
@@ -145,8 +159,8 @@ namespace rtsp_camera_viewer
                 MaxColumns = 3;
             }
 
-           
-            int MaxCells = vlc_list.Count;
+
+            int MaxCells = vlc_list.Length;
             int MaxRows = (int)Math.Ceiling(MaxCells / (double)MaxColumns);
 
             // Camera Ratio 16:9 - Calculate ratio:
@@ -181,7 +195,7 @@ namespace rtsp_camera_viewer
                         {
                             spanSize = MaxRows;
                         }
-                        Console.WriteLine("Max rows:" + MaxRows + " max cols: " + MaxColumns);
+                        //Console.WriteLine("Max rows:" + MaxRows + " max cols: " + MaxColumns);
 
                         if (spanSize == 2)
                         {
@@ -270,7 +284,10 @@ namespace rtsp_camera_viewer
                 }
                 else
                 {
-                    vlc_list.ForEach(cam => cam.MediaPlayer.Volume = 100);
+                    foreach (VideoView cam in vlc_list)
+                    {
+                        cam.MediaPlayer.Volume = 100;
+                    }
                 }
             }
 
@@ -290,24 +307,19 @@ namespace rtsp_camera_viewer
         public void CameraOff()
         {
             CamerasEnabled = false;
-            foreach (VideoView vlc_videoview in vlc_list)
+            for (int Index = 0; Index < vlc_list.Length; Index++)
             {
-                ThreadPool.QueueUserWorkItem(state =>
-                {
-                    RemoveVLC(vlc_videoview);
-                });
-                Controls.Remove(vlc_videoview);
+                CameraOff(Index);
             }
-            vlc_list.Clear();
+        }
+        public void CameraOff(int Index)
+        {
+            vlc_list[Index].MediaPlayer.Dispose();
+            vlc_list[Index].Dispose();
+            Controls.Remove(vlc_list[Index]);
         }
 
-        public void RemoveVLC(VideoView vlc_videoview)
-        {
-            vlc_videoview.MediaPlayer.Stop();
-            vlc_videoview.MediaPlayer.Media.Dispose();
-            vlc_videoview.MediaPlayer.Dispose();
-            vlc_videoview.Dispose();
-        }
+
 
         private void tmrRefresh_Tick(object sender, EventArgs e)
         {
@@ -321,6 +333,7 @@ namespace rtsp_camera_viewer
             {
                 if (FullScreenSize)
                 {
+                    //Return to normal layout view.
                     Rectangle CamPanelRec = new Rectangle(Location.X, Location.Y + LocYStart, Width, Height); // 80 offset to exclude buttons.
                     if (CamPanelRec.Contains(RelativePoint))
                     {
@@ -329,7 +342,8 @@ namespace rtsp_camera_viewer
                 }
                 else
                 {
-                    for (int i = 0; i < vlc_list.Count; i++)
+                    //Normal Mode - Show Selected camera.
+                    for (int i = 0; i < vlc_list.Length; i++)
                     {
                         Rectangle VlcRec = new Rectangle(vlc_list[i].Location.X, vlc_list[i].Location.Y + LocYStart, vlc_list[i].Width, vlc_list[i].Height);
                         if (VlcRec.Contains(RelativePoint))
@@ -351,20 +365,58 @@ namespace rtsp_camera_viewer
             WPAI.StopMouseHook();
         }
 
+        Size NormalWindowSize = new Size(800, 800);
 
         private void btnM_Click(object sender, EventArgs e)
         {
+            int taskBarHandle = (int)WindowsAPI.FindWindow("Shell_TrayWnd", "");
+
             if (WindowState == FormWindowState.Maximized)
             {
                 // Change to normal mode.
                 WindowState = FormWindowState.Normal;
                 FormBorderStyle = FormBorderStyle.Sizable;
+                this.Size = NormalWindowSize;
+                WindowsAPI.ShowWindow(taskBarHandle, WindowsAPI.SW.SW_SHOW);
             }
             else
             {
                 // Change to fullscreen.
+                NormalWindowSize = this.Size;
                 WindowState = FormWindowState.Maximized;
                 FormBorderStyle = FormBorderStyle.None;
+
+                this.Bounds = Screen.PrimaryScreen.Bounds;
+                WindowsAPI.SetWindowPos(this.Handle, WindowsAPI.HWND_TOP, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height, WindowsAPI.SWP_SHOWWINDOW);
+
+                //Hide taskbar
+                WindowsAPI.ShowWindow(taskBarHandle, WindowsAPI.SW.SW_HIDE);
+            }
+        }
+
+        private void tmrWatch_Tick(object sender, EventArgs e)
+        {
+            if (!CamerasEnabled)
+            {
+                //return;
+            }
+            for (int index = 0; index < vlc_list.Length; index++)
+            {
+                try
+                {
+                    if (!vlc_list[index].MediaPlayer.IsPlaying)
+                    {
+                        Console.WriteLine("Refreshing Camera " + index.ToString());
+                        CameraOff(index);
+                        RefreshCamera(index);
+                        ResizeVlcControls();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Failed to refresh camera: " + ex.Message);
+                }
+
             }
         }
     }

@@ -28,10 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btnOff = new System.Windows.Forms.Button();
             this.btnRefresh = new System.Windows.Forms.Button();
             this.btnAudio = new System.Windows.Forms.Button();
             this.btnM = new System.Windows.Forms.Button();
+            this.tmrWatch = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // btnOff
@@ -87,6 +89,11 @@
             this.btnM.UseVisualStyleBackColor = false;
             this.btnM.Click += new System.EventHandler(this.btnM_Click);
             // 
+            // tmrWatch
+            // 
+            this.tmrWatch.Interval = 15000;
+            this.tmrWatch.Tick += new System.EventHandler(this.tmrWatch_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -112,6 +119,7 @@
         internal System.Windows.Forms.Button btnRefresh;
         internal System.Windows.Forms.Button btnAudio;
         internal System.Windows.Forms.Button btnM;
+        private System.Windows.Forms.Timer tmrWatch;
     }
 }
 

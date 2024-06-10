@@ -81,7 +81,7 @@
             this.btnM.BackColor = System.Drawing.Color.Black;
             this.btnM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnM.ForeColor = System.Drawing.Color.White;
-            this.btnM.Location = new System.Drawing.Point(1318, 10);
+            this.btnM.Location = new System.Drawing.Point(1233, 10);
             this.btnM.Name = "btnM";
             this.btnM.Size = new System.Drawing.Size(40, 30);
             this.btnM.TabIndex = 10;
@@ -99,7 +99,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(1369, 928);
+            this.ClientSize = new System.Drawing.Size(1284, 701);
             this.Controls.Add(this.btnM);
             this.Controls.Add(this.btnOff);
             this.Controls.Add(this.btnRefresh);

@@ -41,6 +41,8 @@ namespace rtsp_camera_viewer
             //Failures here may indicate 32-bit build in use.
             Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
 
+            WindowState = FormWindowState.Maximized;
+
             LoadVideoStreams();
             WPAI = new WindowsAPI(this);
             WPAI.StartMouseHook();
@@ -126,7 +128,7 @@ namespace rtsp_camera_viewer
 
         public void ResizeVlcControls()
         {
-            if (vlc_list.Length == 0)
+            if (vlc_list == null || vlc_list.Length == 0)
             {
                 return; // skip if not active
             }
@@ -365,24 +367,24 @@ namespace rtsp_camera_viewer
             WPAI.StopMouseHook();
         }
 
-        Size NormalWindowSize = new Size(800, 800);
 
+        bool FullScreenMode = false;
         private void btnM_Click(object sender, EventArgs e)
         {
             int taskBarHandle = (int)WindowsAPI.FindWindow("Shell_TrayWnd", "");
 
-            if (WindowState == FormWindowState.Maximized)
+            if (FullScreenMode)
             {
+                FullScreenMode = false;
                 // Change to normal mode.
-                WindowState = FormWindowState.Normal;
+                WindowState = FormWindowState.Maximized;
                 FormBorderStyle = FormBorderStyle.Sizable;
-                this.Size = NormalWindowSize;
                 WindowsAPI.ShowWindow(taskBarHandle, WindowsAPI.SW.SW_SHOW);
             }
             else
             {
+                FullScreenMode = true;
                 // Change to fullscreen.
-                NormalWindowSize = this.Size;
                 WindowState = FormWindowState.Maximized;
                 FormBorderStyle = FormBorderStyle.None;
 
@@ -392,6 +394,11 @@ namespace rtsp_camera_viewer
                 //Hide taskbar
                 WindowsAPI.ShowWindow(taskBarHandle, WindowsAPI.SW.SW_HIDE);
             }
+        }
+
+        void Fullscreen()
+        {
+
         }
 
         private void tmrWatch_Tick(object sender, EventArgs e)

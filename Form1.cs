@@ -405,7 +405,7 @@ namespace rtsp_camera_viewer
         {
             if (!CamerasEnabled)
             {
-                //return;
+                return;
             }
             for (int index = 0; index < vlc_list.Length; index++)
             {

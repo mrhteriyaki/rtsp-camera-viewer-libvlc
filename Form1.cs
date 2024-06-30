@@ -114,7 +114,7 @@ namespace rtsp_camera_viewer
             // vlccontrol.Video.IsMouseInputEnabled = False
             // vlccontrol.Video.IsKeyInputEnabled = False
 
-            
+
             Program.frm1.Invoke(new MethodInvoker(delegate
             {
                 Controls.Add(vlc_list[Index]);
@@ -128,6 +128,8 @@ namespace rtsp_camera_viewer
 
         public void ResizeVlcControls()
         {
+            Console.WriteLine("ResizeVlcControls");
+
             if (vlc_list == null || vlc_list.Length == 0)
             {
                 return; // skip if not active
@@ -335,8 +337,8 @@ namespace rtsp_camera_viewer
             {
                 if (FullScreenSize)
                 {
-                    //Return to normal layout view.
-                    Rectangle CamPanelRec = new Rectangle(Location.X, Location.Y + LocYStart, Width, Height); // 80 offset to exclude buttons.
+                    Console.WriteLine("Return to normal view");
+                    Rectangle CamPanelRec = new Rectangle(0, LocYStart, Width, Height); // 80 offset to exclude buttons.
                     if (CamPanelRec.Contains(RelativePoint))
                     {
                         ResizeVlcControls();
@@ -344,7 +346,7 @@ namespace rtsp_camera_viewer
                 }
                 else
                 {
-                    //Normal Mode - Show Selected camera.
+                    Console.WriteLine("Change to fullscreen.");
                     for (int i = 0; i < vlc_list.Length; i++)
                     {
                         Rectangle VlcRec = new Rectangle(vlc_list[i].Location.X, vlc_list[i].Location.Y + LocYStart, vlc_list[i].Width, vlc_list[i].Height);

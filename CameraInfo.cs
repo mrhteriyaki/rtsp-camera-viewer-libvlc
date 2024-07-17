@@ -8,7 +8,7 @@ namespace rtsp_camera_viewer
 {
     public class CameraInfo
     {
-        public CameraInfo(string Addr, int Rtat)
+        public CameraInfo(string Addr, int Rtat = 0)
         {
             Rotate = Rtat;
             Address = Addr;

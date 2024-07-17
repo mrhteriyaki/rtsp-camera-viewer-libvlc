@@ -7,7 +7,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security.Policy;
@@ -44,6 +46,9 @@ namespace rtsp_camera_viewer
             WindowState = FormWindowState.Maximized;
 
             LoadVideoStreams();
+
+
+
             WPAI = new WindowsAPI(this);
             WPAI.StartMouseHook();
             tmrWatch.Enabled = true;
@@ -53,7 +58,25 @@ namespace rtsp_camera_viewer
 
         public void LoadVideoStreams()
         {
-            CameraSourceList = SQLFunctions.GetCameraList();
+            if (File.Exists("config.ini"))
+            {
+                //Load camera list from config.ini.
+                
+                foreach (string cl in File.ReadLines("config.ini"))
+                {
+                    if(cl.StartsWith("camera="))
+                    {
+                        CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
+                    }
+                }
+
+            }
+            else
+            {
+                //Use SQL lookup.
+                CameraSourceList = SQLFunctions.GetCameraList();
+            }
+
 
             //Init objects.
             vlc_list = new VideoView[CameraSourceList.Count];

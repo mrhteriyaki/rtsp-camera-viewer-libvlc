@@ -45,7 +45,17 @@ namespace rtsp_camera_viewer
 
             WindowState = FormWindowState.Maximized;
 
-            LoadVideoStreams();
+            try
+            {
+                LoadVideoStreams();
+            }
+            catch
+            {
+                MessageBox.Show("Failed to load a list of cameras, check config.ini or SQL.");
+                Application.Exit();
+                return;
+            }
+            
 
 
 

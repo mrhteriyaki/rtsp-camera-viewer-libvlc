@@ -38,6 +38,8 @@ namespace rtsp_camera_viewer
         const int LocXStart = 5;
         const int LocYStart = 45;
 
+        int MaxColumns = 3;
+
         private void Form1_Load(object sender, EventArgs e)
         {
             //Failures here may indicate 32-bit build in use.
@@ -57,8 +59,6 @@ namespace rtsp_camera_viewer
             }
             
 
-
-
             WPAI = new WindowsAPI(this);
             WPAI.StartMouseHook();
             tmrWatch.Enabled = true;
@@ -77,6 +77,11 @@ namespace rtsp_camera_viewer
                     if(cl.StartsWith("camera="))
                     {
                         CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
+                    }
+
+                    if(cl.StartsWith("maxcols="))
+                    {
+                        MaxColumns = int.Parse(cl.Substring(8));
                     }
                 }
 
@@ -189,13 +194,14 @@ namespace rtsp_camera_viewer
             int LocY = LocYStart;
 
             // Set number of columns for land/port.
-            int MaxColumns = 2;
+            //            int MaxColumns = MaxCols;
+            /*
             if (Width > Height)
             {
                 // Landscape
                 MaxColumns = 3;
             }
-
+            */
 
             int MaxCells = vlc_list.Length;
             int MaxRows = (int)Math.Ceiling(MaxCells / (double)MaxColumns);

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -17,6 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 
 namespace rtsp_camera_viewer
 {
@@ -43,7 +43,7 @@ namespace rtsp_camera_viewer
         private void Form1_Load(object sender, EventArgs e)
         {
             //Failures here may indicate 32-bit build in use.
-            Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
+            Core.Initialize(@"C:\Program Files\VideoLAN\VLC\libvlc.dll");
 
             WindowState = FormWindowState.Maximized;
 
@@ -51,9 +51,9 @@ namespace rtsp_camera_viewer
             {
                 LoadVideoStreams();
             }
-            catch
+            catch(Exception ex)
             {
-                MessageBox.Show("Failed to load a list of cameras, check config.ini or SQL.");
+                MessageBox.Show("Failed to load a list of cameras, check config.ini or SQL. \n" + ex.Message);
                 Application.Exit();
                 return;
             }
@@ -153,7 +153,7 @@ namespace rtsp_camera_viewer
             // vlccontrol.Video.IsKeyInputEnabled = False
 
 
-            Program.frm1.Invoke(new MethodInvoker(delegate
+            Program.frm1.Invoke(new System.Windows.Forms.MethodInvoker(delegate
             {
                 Controls.Add(vlc_list[Index]);
             }));
@@ -405,7 +405,10 @@ namespace rtsp_camera_viewer
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            WPAI.StopMouseHook();
+            if (WPAI != null)
+            {
+                WPAI.StopMouseHook();
+            }
         }
 
 
@@ -437,10 +440,7 @@ namespace rtsp_camera_viewer
             }
         }
 
-        void Fullscreen()
-        {
-
-        }
+        
 
         private void tmrWatch_Tick(object sender, EventArgs e)
         {
@@ -467,5 +467,8 @@ namespace rtsp_camera_viewer
 
             }
         }
+
+
+      
     }
 }

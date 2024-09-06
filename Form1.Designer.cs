@@ -28,91 +28,95 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.btnOff = new System.Windows.Forms.Button();
-            this.btnRefresh = new System.Windows.Forms.Button();
-            this.btnAudio = new System.Windows.Forms.Button();
-            this.btnM = new System.Windows.Forms.Button();
-            this.tmrWatch = new System.Windows.Forms.Timer(this.components);
-            this.SuspendLayout();
+            btnOff = new System.Windows.Forms.Button();
+            btnRefresh = new System.Windows.Forms.Button();
+            btnAudio = new System.Windows.Forms.Button();
+            btnM = new System.Windows.Forms.Button();
+            tmrWatch = new System.Windows.Forms.Timer(components);
+            SuspendLayout();
             // 
             // btnOff
             // 
-            this.btnOff.BackColor = System.Drawing.Color.Black;
-            this.btnOff.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnOff.ForeColor = System.Drawing.Color.White;
-            this.btnOff.Location = new System.Drawing.Point(251, 10);
-            this.btnOff.Name = "btnOff";
-            this.btnOff.Size = new System.Drawing.Size(115, 30);
-            this.btnOff.TabIndex = 9;
-            this.btnOff.Text = "Off";
-            this.btnOff.UseVisualStyleBackColor = false;
-            this.btnOff.Click += new System.EventHandler(this.btnOff_Click);
+            btnOff.BackColor = System.Drawing.Color.Black;
+            btnOff.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnOff.ForeColor = System.Drawing.Color.White;
+            btnOff.Location = new System.Drawing.Point(293, 5);
+            btnOff.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btnOff.Name = "btnOff";
+            btnOff.Size = new System.Drawing.Size(134, 35);
+            btnOff.TabIndex = 9;
+            btnOff.Text = "Off";
+            btnOff.UseVisualStyleBackColor = false;
+            btnOff.Click += btnOff_Click;
             // 
             // btnRefresh
             // 
-            this.btnRefresh.BackColor = System.Drawing.Color.Black;
-            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.ForeColor = System.Drawing.Color.White;
-            this.btnRefresh.Location = new System.Drawing.Point(130, 10);
-            this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(115, 30);
-            this.btnRefresh.TabIndex = 8;
-            this.btnRefresh.Text = "Refresh";
-            this.btnRefresh.UseVisualStyleBackColor = false;
-            this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
+            btnRefresh.BackColor = System.Drawing.Color.Black;
+            btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnRefresh.ForeColor = System.Drawing.Color.White;
+            btnRefresh.Location = new System.Drawing.Point(152, 5);
+            btnRefresh.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new System.Drawing.Size(134, 35);
+            btnRefresh.TabIndex = 8;
+            btnRefresh.Text = "Refresh";
+            btnRefresh.UseVisualStyleBackColor = false;
+            btnRefresh.Click += btnRefresh_Click;
             // 
             // btnAudio
             // 
-            this.btnAudio.BackColor = System.Drawing.Color.Black;
-            this.btnAudio.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnAudio.ForeColor = System.Drawing.Color.White;
-            this.btnAudio.Location = new System.Drawing.Point(9, 10);
-            this.btnAudio.Name = "btnAudio";
-            this.btnAudio.Size = new System.Drawing.Size(115, 30);
-            this.btnAudio.TabIndex = 7;
-            this.btnAudio.Text = "Enable Audio";
-            this.btnAudio.UseVisualStyleBackColor = false;
-            this.btnAudio.Click += new System.EventHandler(this.btnAudio_Click);
+            btnAudio.BackColor = System.Drawing.Color.Black;
+            btnAudio.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnAudio.ForeColor = System.Drawing.Color.White;
+            btnAudio.Location = new System.Drawing.Point(10, 5);
+            btnAudio.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btnAudio.Name = "btnAudio";
+            btnAudio.Size = new System.Drawing.Size(134, 35);
+            btnAudio.TabIndex = 7;
+            btnAudio.Text = "Enable Audio";
+            btnAudio.UseVisualStyleBackColor = false;
+            btnAudio.Click += btnAudio_Click;
             // 
             // btnM
             // 
-            this.btnM.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnM.BackColor = System.Drawing.Color.Black;
-            this.btnM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnM.ForeColor = System.Drawing.Color.White;
-            this.btnM.Location = new System.Drawing.Point(1233, 10);
-            this.btnM.Name = "btnM";
-            this.btnM.Size = new System.Drawing.Size(40, 30);
-            this.btnM.TabIndex = 10;
-            this.btnM.Text = "M";
-            this.btnM.UseVisualStyleBackColor = false;
-            this.btnM.Click += new System.EventHandler(this.btnM_Click);
+            btnM.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            btnM.BackColor = System.Drawing.Color.Black;
+            btnM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnM.ForeColor = System.Drawing.Color.White;
+            btnM.Location = new System.Drawing.Point(1438, 12);
+            btnM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btnM.Name = "btnM";
+            btnM.Size = new System.Drawing.Size(47, 35);
+            btnM.TabIndex = 10;
+            btnM.Text = "M";
+            btnM.UseVisualStyleBackColor = false;
+            btnM.Click += btnM_Click;
             // 
             // tmrWatch
             // 
-            this.tmrWatch.Interval = 15000;
-            this.tmrWatch.Tick += new System.EventHandler(this.tmrWatch_Tick);
+            tmrWatch.Interval = 15000;
+            tmrWatch.Tick += tmrWatch_Tick;
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(1284, 701);
-            this.Controls.Add(this.btnM);
-            this.Controls.Add(this.btnOff);
-            this.Controls.Add(this.btnRefresh);
-            this.Controls.Add(this.btnAudio);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
-            this.Text = "Camera Viewer";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.Resize += new System.EventHandler(this.Form1_Resize);
-            this.ResumeLayout(false);
-
+            AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            BackColor = System.Drawing.Color.Black;
+            ClientSize = new System.Drawing.Size(1498, 809);
+            Controls.Add(btnM);
+            Controls.Add(btnOff);
+            Controls.Add(btnRefresh);
+            Controls.Add(btnAudio);
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            Name = "Form1";
+            Text = "Camera Viewer";
+            FormClosing += Form1_FormClosing;
+            Load += Form1_Load;
+            Resize += Form1_Resize;
+            ResumeLayout(false);
         }
 
         #endregion

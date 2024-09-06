@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +10,9 @@ namespace rtsp_camera_viewer
 {
     public class SQLFunctions
     {
-        public static string SQLConnectionString = "Data Source=192.168.88.3,1433;Initial Catalog=HomeAutomation;Integrated Security=true";
+        public static string SQLConnectionString = "Data Source=192.168.88.3,1433;Initial Catalog=HomeAutomation;Integrated Security=true;TrustServerCertificate=True;";
+
+
         public static string SqlCommandText = "SELECT [rtsp],rotate from tblCameras order by displayorder_console ASC";
 
 

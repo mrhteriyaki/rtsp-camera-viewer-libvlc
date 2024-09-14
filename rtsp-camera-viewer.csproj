@@ -14,5 +14,6 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.20" />
   </ItemGroup>
 </Project>

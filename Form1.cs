@@ -43,7 +43,18 @@ namespace rtsp_camera_viewer
         private void Form1_Load(object sender, EventArgs e)
         {
             //Failures here may indicate 32-bit build in use.
-            Core.Initialize(@"C:\Program Files\VideoLAN\VLC\libvlc.dll");
+            try
+            {
+                Core.Initialize();
+            }
+            catch
+            {
+                MessageBox.Show("Check VLC is installed, or copy libvlccore and libvlc DLL files to the running directory.");
+                Application.Exit();
+                return;
+
+            }
+
 
             WindowState = FormWindowState.Maximized;
 
@@ -51,13 +62,13 @@ namespace rtsp_camera_viewer
             {
                 LoadVideoStreams();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Failed to load a list of cameras, check config.ini or SQL. \n" + ex.Message);
                 Application.Exit();
                 return;
             }
-            
+
 
             WPAI = new WindowsAPI(this);
             WPAI.StartMouseHook();
@@ -71,15 +82,15 @@ namespace rtsp_camera_viewer
             if (File.Exists("config.ini"))
             {
                 //Load camera list from config.ini.
-                
+
                 foreach (string cl in File.ReadLines("config.ini"))
                 {
-                    if(cl.StartsWith("camera="))
+                    if (cl.StartsWith("camera="))
                     {
                         CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
                     }
 
-                    if(cl.StartsWith("maxcols="))
+                    if (cl.StartsWith("maxcols="))
                     {
                         MaxColumns = int.Parse(cl.Substring(8));
                     }
@@ -440,7 +451,7 @@ namespace rtsp_camera_viewer
             }
         }
 
-        
+
 
         private void tmrWatch_Tick(object sender, EventArgs e)
         {
@@ -469,6 +480,6 @@ namespace rtsp_camera_viewer
         }
 
 
-      
+
     }
 }

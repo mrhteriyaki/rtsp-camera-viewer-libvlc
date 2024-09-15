@@ -35,8 +35,8 @@ namespace rtsp_camera_viewer
         private VideoView[] vlc_list;
         WindowsAPI WPAI;
 
-        const int LocXStart = 5;
-        const int LocYStart = 45;
+        const int LocXStart = 0;
+        const int LocYStart = 35;
 
         int MaxColumns = 3;
 
@@ -106,10 +106,7 @@ namespace rtsp_camera_viewer
 
             //Init objects.
             vlc_list = new VideoView[CameraSourceList.Count];
-            for (int Index = 0; Index < CameraSourceList.Count; Index++)
-            {
-                RefreshCamera(Index);
-            }
+            RefreshCameras();
             ResizeVlcControls();
 
             //Optional add ways to load camera feeds.
@@ -280,7 +277,7 @@ namespace rtsp_camera_viewer
                 if (ColumnCount == MaxColumns) //Next row.
                 {
                     RowCount++;
-                    LocY += ViewSize.Height;
+                    LocY += ViewSize.Height + 5; //5px split between panels.
                     ColumnCount = 0;
                     LocX = LocXStart;
                 }
@@ -368,6 +365,10 @@ namespace rtsp_camera_viewer
         }
         public void CameraOff(int Index)
         {
+            if (vlc_list[Index] == null)
+            {
+                return;
+            }
             vlc_list[Index].MediaPlayer.Dispose();
             vlc_list[Index].Dispose();
             Controls.Remove(vlc_list[Index]);

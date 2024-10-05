@@ -45,11 +45,20 @@ namespace rtsp_camera_viewer
             //Failures here may indicate 32-bit build in use.
             try
             {
-                Core.Initialize();
+                if (Directory.Exists(@"C:\Program Files\VideoLAN\VLC"))
+                {
+                    Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
+                }
+                else
+                {
+                    Core.Initialize();
+                }
+
+                
             }
-            catch
+            catch(Exception ex)
             {
-                MessageBox.Show("Check VLC is installed, or copy libvlccore and libvlc DLL files to the running directory.");
+                MessageBox.Show("Check VLC is installed, or copy libvlccore and libvlc DLL files to the running directory. Exception intializing vlc core: " + ex.ToString());
                 Application.Exit();
                 return;
 

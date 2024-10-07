@@ -14,6 +14,7 @@ using Avalonia.Input;
 using Avalonia.Remote.Protocol.Input;
 using Avalonia;
 using Avalonia.Media;
+using System.Runtime.InteropServices;
 
 
 
@@ -21,7 +22,7 @@ namespace rtsp_viewer_avalonia
 {
     public partial class MainWindow : Window
     {
-        private List<CameraInfo> CameraSourceList;
+        private List<CameraInfo> CameraSourceList = [];
         private VideoView[] vlc_list;
         private bool[] rotateList;
 
@@ -41,9 +42,34 @@ namespace rtsp_viewer_avalonia
 
         public MainWindow()
         {
+            Console.WriteLine("Start Main Window");
             InitializeComponent();
+
+            Console.WriteLine("Add on size changed handler");
             this.SizeChanged += OnSizeChanged;
 
+
+            var btnInit = this.FindControl<Button>("btnInit");
+            btnInit.Click += InitCams;
+
+
+            
+        }
+
+
+        void InitCams(object sender, RoutedEventArgs e)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Console.WriteLine("Operating System: Windows");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Console.WriteLine("Operating System: Linux");
+                Console.WriteLine("If vlc init fails - check package libvlc-dev (Debian) or vlc-devel (RHEL) is installed.");
+            }
+
+            Console.WriteLine("Init VLC");
             try
             {
                 if (Directory.Exists(@"C:\Program Files\VideoLAN\VLC"))
@@ -57,12 +83,48 @@ namespace rtsp_viewer_avalonia
             }
             catch (Exception ex)
             {
+                Console.WriteLine("VLC init faield." + ex.ToString());
                 return;
             }
-            CameraSourceList = SQLFunctions.GetCameraList();
+
+
+            Console.WriteLine("Getting source list.");
+
+            if (File.Exists("config.ini"))
+            {
+                Console.WriteLine("Getting camera list from file.");
+                //Load camera list from config.ini.
+
+                foreach (string cl in File.ReadLines("config.ini"))
+                {
+                    if (cl.StartsWith("camera="))
+                    {
+                        Console.WriteLine("Camera: " + cl.Substring(7));
+                        CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
+                    }
+
+                    if (cl.StartsWith("maxcols="))
+                    {
+                        MaxColumns = int.Parse(cl.Substring(8));
+                    }
+
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("Getting camera list from sql.");
+                //Use SQL lookup.
+                CameraSourceList = SQLFunctions.GetCameraList();
+            }
+
+            Console.WriteLine("Setup vlc_list");
+
             vlc_list = new VideoView[CameraSourceList.Count];
             rotateList = new bool[CameraSourceList.Count];
 
+
+            Console.WriteLine("Setup grid");
             for (int i = 0; i < MaxColumns; i++)
             {
                 MainPanel.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
@@ -77,6 +139,10 @@ namespace rtsp_viewer_avalonia
             {
                 MainPanel.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             }
+
+
+
+            Console.WriteLine("Start source refresh");
             RefreshCameras();
         }
 
@@ -122,12 +188,19 @@ namespace rtsp_viewer_avalonia
         public void RefreshCamera(int Index)
         {
             CameraInfo Camera = CameraSourceList[Index];
-            List<string> ArgsList = new List<string>
-                {
-                    "--rtsp-tcp",
-                    //"--network-caching=1000",
-                    "--aout=directsound" //stops working in vlc4, used to fix audio volume issue applying to all video views when set on 1.
-                };
+            List<string> ArgsList = [];
+
+            //set vlc attributes per os.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ArgsList.Add("--rtsp-tcp");
+                ArgsList.Add("--aout=directsound");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                //
+            }
+
 
             rotateList[Index] = false;
             if (Camera.Rotate != 0) //Rotate in use, enable transform.
@@ -268,7 +341,11 @@ namespace rtsp_viewer_avalonia
         }
         void RestoreNormalGrid()
         {
-            
+            if(vlc_list == null)
+            {
+                return;
+            }
+
             foreach (VideoView Cam in vlc_list)
             {
                 Cam.IsVisible = true;

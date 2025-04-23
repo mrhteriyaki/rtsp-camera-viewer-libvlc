@@ -6,6 +6,5 @@
         x:Class="rtsp_viewer_avalonia.MainWindow"
         Title="rtsp_viewer_avalonia">
 	<Grid x:Name="MainPanel" Margin="20">
-		<Button Name="btnInit" Content="Load" Width="100" Height="30"/>
 	</Grid>
 </Window>

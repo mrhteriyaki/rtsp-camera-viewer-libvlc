@@ -43,6 +43,7 @@ namespace rtsp_camera_viewer
         private void Form1_Load(object sender, EventArgs e)
         {
             //Failures here may indicate 32-bit build in use.
+
             try
             {
                 if (Directory.Exists(@"C:\Program Files\VideoLAN\VLC"))
@@ -54,9 +55,9 @@ namespace rtsp_camera_viewer
                     Core.Initialize();
                 }
 
-                
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Check VLC is installed, or copy libvlccore and libvlc DLL files to the running directory. Exception intializing vlc core: " + ex.ToString());
                 Application.Exit();
@@ -83,12 +84,29 @@ namespace rtsp_camera_viewer
             WPAI.StartMouseHook();
             tmrWatch.Enabled = true;
             CamerasEnabled = true;
+
         }
 
 
         public void LoadVideoStreams()
         {
-            if (File.Exists("config.ini"))
+            if (File.Exists("sqlconfig.ini"))
+            {
+                //Use SQL lookup.
+                CameraSourceList = SQLFunctions.GetCameraList();
+                if (File.Exists("config.ini"))
+                {
+                    foreach (string cl in File.ReadLines("config.ini"))
+                    {
+                        //Get Camera Column setting.
+                        if (cl.StartsWith("maxcols="))
+                        {
+                            MaxColumns = int.Parse(cl.Substring(8));
+                        }
+                    }
+                }
+            }
+            else if (File.Exists("config.ini"))
             {
                 //Load camera list from config.ini.
 
@@ -108,13 +126,15 @@ namespace rtsp_camera_viewer
             }
             else
             {
-                //Use SQL lookup.
-                CameraSourceList = SQLFunctions.GetCameraList();
+                MessageBox.Show("Error - No Config for video sources.");
+                return;
             }
 
 
-            //Init objects.
-            vlc_list = new VideoView[CameraSourceList.Count];
+
+
+                //Init objects.
+                vlc_list = new VideoView[CameraSourceList.Count];
             RefreshCameras();
             ResizeVlcControls();
 
@@ -183,8 +203,6 @@ namespace rtsp_camera_viewer
 
         public void ResizeVlcControls()
         {
-            Console.WriteLine("ResizeVlcControls");
-
             if (vlc_list == null || vlc_list.Length == 0)
             {
                 return; // skip if not active
@@ -255,7 +273,6 @@ namespace rtsp_camera_viewer
                         {
                             spanSize = MaxRows;
                         }
-                        //Console.WriteLine("Max rows:" + MaxRows + " max cols: " + MaxColumns);
 
                         if (spanSize == 2)
                         {
@@ -397,7 +414,6 @@ namespace rtsp_camera_viewer
             {
                 if (FullScreenSize)
                 {
-                    Console.WriteLine("Return to normal view");
                     Rectangle CamPanelRec = new Rectangle(0, LocYStart, Width, Height); // 80 offset to exclude buttons.
                     if (CamPanelRec.Contains(RelativePoint))
                     {
@@ -406,7 +422,6 @@ namespace rtsp_camera_viewer
                 }
                 else
                 {
-                    Console.WriteLine("Change to fullscreen.");
                     for (int i = 0; i < vlc_list.Length; i++)
                     {
                         Rectangle VlcRec = new Rectangle(vlc_list[i].Location.X, vlc_list[i].Location.Y + LocYStart, vlc_list[i].Width, vlc_list[i].Height);
@@ -475,7 +490,7 @@ namespace rtsp_camera_viewer
                 {
                     if (!vlc_list[index].MediaPlayer.IsPlaying)
                     {
-                        Console.WriteLine("Refreshing Camera " + index.ToString());
+                        Logger.LogMessage("Camera not playing - refreshing source: " + index.ToString());
                         CameraOff(index);
                         RefreshCamera(index);
                         ResizeVlcControls();
@@ -483,7 +498,7 @@ namespace rtsp_camera_viewer
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Failed to refresh camera: " + ex.Message);
+                    Logger.LogMessage("Failed to refresh camera: " + ex.Message);
                 }
 
             }

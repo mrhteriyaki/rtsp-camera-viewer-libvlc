@@ -42,22 +42,15 @@ namespace rtsp_viewer_avalonia
 
         public MainWindow()
         {
-            Console.WriteLine("Start Main Window");
             InitializeComponent();
-
-            Console.WriteLine("Add on size changed handler");
             this.SizeChanged += OnSizeChanged;
 
-
-            var btnInit = this.FindControl<Button>("btnInit");
-            btnInit.Click += InitCams;
-
-
-            
+            //trigger load after window opens.
+            this.Opened += InitCams;
         }
 
 
-        void InitCams(object sender, RoutedEventArgs e)
+        void InitCams(object sender, EventArgs e)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -182,7 +175,8 @@ namespace rtsp_viewer_avalonia
             {
                 RefreshCamera(Index);
             }
-            //ResizeVlcControls();
+
+            RestoreNormalGrid();
         }
 
         public void RefreshCamera(int Index)

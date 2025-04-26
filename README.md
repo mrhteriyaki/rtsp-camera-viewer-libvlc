@@ -13,7 +13,7 @@ Displays multiple video streams in a grid with quick one click fullscreen access
 
 
 ## Setup  
-Add video streams using the settings too.
+Add video streams using the settings tool.
 Example source path is: rtsp://1.2.3.4:554/s0  
 
 ![settings](Images/Settings.PNG)  

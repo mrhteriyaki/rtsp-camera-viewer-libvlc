@@ -15,30 +15,23 @@ using Avalonia.Remote.Protocol.Input;
 using Avalonia;
 using Avalonia.Media;
 using System.Runtime.InteropServices;
-
+using rtsp_camera_viewer_common;
 
 
 namespace rtsp_viewer_avalonia
 {
     public partial class MainWindow : Window
     {
-        private List<CameraInfo> CameraSourceList = [];
         private VideoView[] vlc_list;
-        private bool[] rotateList;
 
-        int MaxColumns = 3;
         int currentCell = 0;
         List<int> skipCellIndex = [];
-
-        bool AudioEnabled = false;
-        bool FullScreenSize = false;
-
+        
         class VideoViewLocal
         {
             public VideoView videoView;
             public bool rotated = false;
         }
-
 
         public MainWindow()
         {
@@ -65,14 +58,7 @@ namespace rtsp_viewer_avalonia
             Console.WriteLine("Init VLC");
             try
             {
-                if (Directory.Exists(@"C:\Program Files\VideoLAN\VLC"))
-                {
-                    Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
-                }
-                else
-                {
-                    Core.Initialize();
-                }
+                ConfigLoader.VlcInit();
             }
             catch (Exception ex)
             {
@@ -83,57 +69,25 @@ namespace rtsp_viewer_avalonia
 
             Console.WriteLine("Getting source list.");
 
-            if (File.Exists("config.ini"))
-            {
-                Console.WriteLine("Getting camera list from file.");
-                //Load camera list from config.ini.
-
-                foreach (string cl in File.ReadLines("config.ini"))
-                {
-                    if (cl.StartsWith("camera="))
-                    {
-                        Console.WriteLine("Camera: " + cl.Substring(7));
-                        CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
-                    }
-
-                    if (cl.StartsWith("maxcols="))
-                    {
-                        MaxColumns = int.Parse(cl.Substring(8));
-                    }
-
-                }
-
-            }
-            else
-            {
-                Console.WriteLine("Getting camera list from sql.");
-                //Use SQL lookup.
-                CameraSourceList = SQLFunctions.GetCameraList();
-            }
+            ConfigLoader.LoadStreamList();
 
             Console.WriteLine("Setup vlc_list");
 
-            vlc_list = new VideoView[CameraSourceList.Count];
-            rotateList = new bool[CameraSourceList.Count];
+            vlc_list = new VideoView[ConfigLoader.CameraSourceList.Count];
+            //rotateList = new bool[ConfigLoader.CameraSourceList.Count];
 
 
             Console.WriteLine("Setup grid");
-            for (int i = 0; i < MaxColumns; i++)
+            for (int i = 0; i < ConfigLoader.MaxColumns; i++)
             {
                 MainPanel.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
             }
 
-            int rows = CameraSourceList.Count / MaxColumns;
-            if ((CameraSourceList.Count % MaxColumns) > 0)
-            {
-                rows++;
-            }
+            int rows = ConfigLoader.GetRowCount();
             for (int i = 0; i < rows; i++)
             {
                 MainPanel.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             }
-
-
 
             Console.WriteLine("Start source refresh");
             RefreshCameras();
@@ -153,7 +107,7 @@ namespace rtsp_viewer_avalonia
             for (int i = 0; i < vlc_list.Count(); i++)
             {
                 vlc_list[i].Width = MainPanel.Width / MainPanel.ColumnDefinitions.Count;
-                if (rotateList[i])
+                if (ConfigLoader.CameraSourceList[i].GetRotateBlock())
                 {
                     vlc_list[i].Height = (MainPanel.Height / MainPanel.RowDefinitions.Count) * 3;
                 }
@@ -171,7 +125,7 @@ namespace rtsp_viewer_avalonia
             //CamerasEnabled = true;
 
             MainPanel.Children.Clear();
-            for (int Index = 0; Index < CameraSourceList.Count; Index++)
+            for (int Index = 0; Index < ConfigLoader.CameraSourceList.Count; Index++)
             {
                 RefreshCamera(Index);
             }
@@ -181,43 +135,9 @@ namespace rtsp_viewer_avalonia
 
         public void RefreshCamera(int Index)
         {
-            CameraInfo Camera = CameraSourceList[Index];
-            List<string> ArgsList = [];
-
-            //set vlc attributes per os.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                ArgsList.Add("--rtsp-tcp");
-                ArgsList.Add("--aout=directsound");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                //
-            }
-
-
-            rotateList[Index] = false;
-            if (Camera.Rotate != 0) //Rotate in use, enable transform.
-            {
-                ArgsList.Add("--video-filter=transform");
-                if (Camera.Rotate == 90)
-                {
-                    ArgsList.Add("--transform-type=90");
-                    rotateList[Index] = true;
-                }
-                else if (Camera.Rotate == 180)
-                {
-                    ArgsList.Add("--transform-type=180");
-                }
-                else if (Camera.Rotate == 270)
-                {
-                    ArgsList.Add("--transform-type=270");
-                    rotateList[Index] = true;
-                }
-            }
-
-
-            LibVLC _LibVLC = new LibVLC(ArgsList.ToArray());
+            CameraInfo Camera = ConfigLoader.CameraSourceList[Index];
+            
+            LibVLC _LibVLC = new LibVLC(Camera.GetVlcArgs().ToArray());
             vlc_list[Index] = new VideoView();
             vlc_list[Index].MediaPlayer = new MediaPlayer(_LibVLC);
             vlc_list[Index].MediaPlayer.Media = new Media(_LibVLC, Camera.Address, FromType.FromLocation);
@@ -235,8 +155,6 @@ namespace rtsp_viewer_avalonia
             vlc_list[Index].Content = clickPanel;
 
 
-
-
             // Required for form click event to work.
             // vlccontrol.Video.IsMouseInputEnabled = False
             // vlccontrol.Video.IsKeyInputEnabled = False
@@ -244,18 +162,18 @@ namespace rtsp_viewer_avalonia
             //Add control to window panel.
 
 
-            int rowVal = currentCell / MaxColumns;
+            int rowVal = currentCell / ConfigLoader.MaxColumns;
 
             Grid.SetRow(vlc_list[Index], rowVal);
-            Grid.SetColumn(vlc_list[Index], currentCell % MaxColumns);
+            Grid.SetColumn(vlc_list[Index], currentCell % ConfigLoader.MaxColumns);
 
-            if (rotateList[Index])
+            if (ConfigLoader.CameraSourceList[Index].GetRotateBlock())
             {
                 Grid.SetRowSpan(vlc_list[Index], 3);
 
                 //+1 offsite for 0-based.
-                skipCellIndex.Add(rowVal + MaxColumns + 1);
-                skipCellIndex.Add(rowVal + (MaxColumns * 2) + 1);
+                skipCellIndex.Add(rowVal + ConfigLoader.MaxColumns + 1);
+                skipCellIndex.Add(rowVal + (ConfigLoader.MaxColumns * 2) + 1);
             }
 
             MainPanel.Children.Add(vlc_list[Index]);
@@ -277,11 +195,11 @@ namespace rtsp_viewer_avalonia
 
         private void EnableFullScreen(VideoView vlc_control)
         {
-            if (FullScreenSize)
+            if (ConfigLoader.FullScreenSize)
             {
                 //Restore normal view.
                 RestoreNormalGrid();
-                FullScreenSize = false;
+                ConfigLoader.FullScreenSize = false;
             }
             else
             {
@@ -301,16 +219,9 @@ namespace rtsp_viewer_avalonia
 
                 //vlc_control.Location = new Point(20, 50);
                 //vlc_control.Size = new Size(this.Width - 70, this.Height - 90);
+                vlc_control.MediaPlayer.Volume = ConfigLoader.AudioEnabled ? 100 : 0;
 
-                if (AudioEnabled == true)
-                {
-                    vlc_control.MediaPlayer.Volume = 100;
-                }
-                else
-                {
-                    vlc_control.MediaPlayer.Volume = 0;
-                }
-                FullScreenSize = true;
+                ConfigLoader.FullScreenSize = true;
             }
 
         }
@@ -343,7 +254,7 @@ namespace rtsp_viewer_avalonia
             foreach (VideoView Cam in vlc_list)
             {
                 Cam.IsVisible = true;
-                if (AudioEnabled == true)
+                if (ConfigLoader.AudioEnabled == true)
                 {
                     Cam.MediaPlayer.Volume = 100;
                 }
@@ -364,7 +275,7 @@ namespace rtsp_viewer_avalonia
             }
 
             VlcResize();
-            FullScreenSize = false;
+            ConfigLoader.FullScreenSize = false;
         }
 
     }

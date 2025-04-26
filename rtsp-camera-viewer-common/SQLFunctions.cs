@@ -4,19 +4,12 @@ using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.IO;
 
-namespace rtsp_camera_viewer
+namespace rtsp_camera_viewer_common
 {
     public class SQLFunctions
     {
-        //Example config for sqlconfig.ini
-        
-        //Data Source=192.168.88.3,1433;Initial Catalog=HomeAutomation;Integrated Security=true;TrustServerCertificate=True;
-        //SELECT [rtsp],rotate from tblCameras order by displayorder_console ASC;
-
-
         public static List<CameraInfo> GetCameraList()
         {
             string sqlconn = "";

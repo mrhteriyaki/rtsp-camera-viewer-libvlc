@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
+using rtsp_camera_viewer_common;
 
 namespace rtsp_camera_viewer
 {
@@ -27,18 +27,17 @@ namespace rtsp_camera_viewer
             InitializeComponent();
         }
 
-        private bool AudioEnabled = false;
-        private bool CamerasEnabled = false;
-        private bool FullScreenSize = false;
 
-        private List<CameraInfo> CameraSourceList = new List<CameraInfo>();
+        private bool CamerasEnabled = false;
+
+
+
         private VideoView[] vlc_list;
         WindowsAPI WPAI;
 
         const int LocXStart = 0;
         const int LocYStart = 35;
 
-        int MaxColumns = 3;
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -46,16 +45,7 @@ namespace rtsp_camera_viewer
 
             try
             {
-                if (Directory.Exists(@"C:\Program Files\VideoLAN\VLC"))
-                {
-                    Core.Initialize(@"C:\Program Files\VideoLAN\VLC");
-                }
-                else
-                {
-                    Core.Initialize();
-                }
-
-
+                ConfigLoader.VlcInit();
             }
             catch (Exception ex)
             {
@@ -64,7 +54,6 @@ namespace rtsp_camera_viewer
                 return;
 
             }
-
 
             WindowState = FormWindowState.Maximized;
 
@@ -79,7 +68,6 @@ namespace rtsp_camera_viewer
                 return;
             }
 
-
             WPAI = new WindowsAPI(this);
             WPAI.StartMouseHook();
             tmrWatch.Enabled = true;
@@ -90,53 +78,12 @@ namespace rtsp_camera_viewer
 
         public void LoadVideoStreams()
         {
-            if (File.Exists("sqlconfig.ini"))
-            {
-                //Use SQL lookup.
-                CameraSourceList = SQLFunctions.GetCameraList();
-                if (File.Exists("config.ini"))
-                {
-                    foreach (string cl in File.ReadLines("config.ini"))
-                    {
-                        //Get Camera Column setting.
-                        if (cl.StartsWith("maxcols="))
-                        {
-                            MaxColumns = int.Parse(cl.Substring(8));
-                        }
-                    }
-                }
-            }
-            else if (File.Exists("config.ini"))
-            {
-                //Load camera list from config.ini.
+            ConfigLoader.LoadStreamList();
 
-                foreach (string cl in File.ReadLines("config.ini"))
-                {
-                    if (cl.StartsWith("camera="))
-                    {
-                        CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
-                    }
-
-                    if (cl.StartsWith("maxcols="))
-                    {
-                        MaxColumns = int.Parse(cl.Substring(8));
-                    }
-                }
-
-            }
-            else
-            {
-                MessageBox.Show("Error - No Config for video sources.");
-                return;
-            }
-
-
-
-
-                //Init objects.
-                vlc_list = new VideoView[CameraSourceList.Count];
+            //Init objects.
+            vlc_list = new VideoView[ConfigLoader.CameraSourceList.Count];
             RefreshCameras();
-            ResizeVlcControls();
+            VlcResize();
 
             //Optional add ways to load camera feeds.
         }
@@ -145,43 +92,18 @@ namespace rtsp_camera_viewer
         {
             CameraOff();
             CamerasEnabled = true;
-            for (int Index = 0; Index < CameraSourceList.Count; Index++)
+            for (int Index = 0; Index < ConfigLoader.CameraSourceList.Count; Index++)
             {
                 RefreshCamera(Index);
             }
-            ResizeVlcControls();
+            VlcResize();
         }
 
         public void RefreshCamera(int Index)
         {
-            CameraInfo Camera = CameraSourceList[Index];
-            List<string> ArgsList = new List<string>
-                {
-                    "--rtsp-tcp",
-                    //"--network-caching=1000",
-                    "--aout=directsound" //stops working in vlc4, used to fix audio volume issue applying to all video views when set on 1.
-                };
+            CameraInfo Camera = ConfigLoader.CameraSourceList[Index];
 
-            if (Camera.Rotate != 0) //Rotate in use, enable transform.
-            {
-                ArgsList.Add("--video-filter=transform");
-            }
-
-
-            if (Camera.Rotate == 90)
-            {
-                ArgsList.Add("--transform-type=90");
-            }
-            else if (Camera.Rotate == 180)
-            {
-                ArgsList.Add("--transform-type=180");
-            }
-            else if (Camera.Rotate == 270)
-            {
-                ArgsList.Add("--transform-type=270");
-            }
-
-            LibVLC _LibVLC = new LibVLC(ArgsList.ToArray());
+            LibVLC _LibVLC = new LibVLC(Camera.GetVlcArgs().ToArray());
             vlc_list[Index] = new VideoView();
             vlc_list[Index].MediaPlayer = new MediaPlayer(_LibVLC);
             vlc_list[Index].MediaPlayer.Media = new Media(_LibVLC, Camera.Address, FromType.FromLocation);
@@ -201,7 +123,7 @@ namespace rtsp_camera_viewer
         }
 
 
-        public void ResizeVlcControls()
+        public void VlcResize()
         {
             if (vlc_list == null || vlc_list.Length == 0)
             {
@@ -212,38 +134,30 @@ namespace rtsp_camera_viewer
             foreach (VideoView Cam in vlc_list)
             {
                 Cam.Visible = true;
-                if (AudioEnabled)
-                {
-                    Cam.MediaPlayer.Volume = 100;
-                }
-                else
-                {
-                    Cam.MediaPlayer.Volume = 0;
-                }
+                Cam.MediaPlayer.Volume = ConfigLoader.AudioEnabled ? 100 : 0;
                 Cam.BringToFront();
             }
-            FullScreenSize = false; // Clear fullscreen property.
-
+            ConfigLoader.FullScreenSize = false; // Clear fullscreen property.
 
             int LocX = LocXStart;
             int LocY = LocYStart;
 
             // Set number of columns for land/port.
-            //            int MaxColumns = MaxCols;
+            //            int ConfigLoader.MaxColumns = MaxCols;
             /*
             if (Width > Height)
             {
                 // Landscape
-                MaxColumns = 3;
+                ConfigLoader.MaxColumns = 3;
             }
             */
 
-            int MaxCells = vlc_list.Length;
-            int MaxRows = (int)Math.Ceiling(MaxCells / (double)MaxColumns);
+            int MaxRows = ConfigLoader.GetRowCount();
+            int MaxCells = ConfigLoader.GetCellCount();
 
             // Camera Ratio 16:9 - Calculate ratio:
             double MaxHeight = (Height - (LocY + 50)) / MaxRows / 9d; // Divide height by number of rows (rounded up), total size minus start Y offset.
-            double MaxWidth = (Width - (LocX + 50)) / (double)MaxColumns / 16d;
+            double MaxWidth = (Width - (LocX + 50)) / (double)ConfigLoader.MaxColumns / 16d;
 
             int RatioMultiY = (int)Math.Round(MaxHeight); // Size by availble height.
             int RatioMultiX = (int)Math.Round(MaxWidth); // Size by available width.
@@ -261,11 +175,11 @@ namespace rtsp_camera_viewer
                 if (!SkipCells.Contains(i))
                 {
                     int vi = i - SkippedCells;
-                    if (vi >= CameraSourceList.Count)
+                    if (vi >= ConfigLoader.CameraSourceList.Count)
                     {
                         continue; //avoid index exception.
                     }
-                    if (CameraSourceList[vi].Rotate == 90 || CameraSourceList[vi].Rotate == 270)
+                    if (ConfigLoader.CameraSourceList[vi].Rotate == 90 || ConfigLoader.CameraSourceList[vi].Rotate == 270)
                     {
                         //Span up to 3 rows when rotated.
                         int spanSize = 3;
@@ -274,15 +188,16 @@ namespace rtsp_camera_viewer
                             spanSize = MaxRows;
                         }
 
+
                         if (spanSize == 2)
                         {
-                            SkipCells.Add(i + MaxColumns);
+                            SkipCells.Add(i + ConfigLoader.MaxColumns);
                             MaxCells++;
                         }
                         else if (spanSize == 3)
                         {
-                            SkipCells.Add(i + MaxColumns);
-                            SkipCells.Add(i + (MaxColumns * 2));
+                            SkipCells.Add(i + ConfigLoader.MaxColumns);
+                            SkipCells.Add(i + (ConfigLoader.MaxColumns * 2));
                             MaxCells += 2;
                         }
 
@@ -300,7 +215,7 @@ namespace rtsp_camera_viewer
                 }
                 LocX += ViewSize.Width;
                 ColumnCount++;
-                if (ColumnCount == MaxColumns) //Next row.
+                if (ColumnCount == ConfigLoader.MaxColumns) //Next row.
                 {
                     RowCount++;
                     LocY += ViewSize.Height + 5; //5px split between panels.
@@ -323,15 +238,8 @@ namespace rtsp_camera_viewer
             vlc_control.Visible = true;
             vlc_control.Location = new Point(20, 50);
             vlc_control.Size = new Size(this.Width - 70, this.Height - 90);
-            if (AudioEnabled == true)
-            {
-                vlc_control.MediaPlayer.Volume = 100;
-            }
-            else
-            {
-                vlc_control.MediaPlayer.Volume = 0;
-            }
-            FullScreenSize = true;
+            vlc_control.MediaPlayer.Volume = ConfigLoader.AudioEnabled ? 100 : 0;
+            ConfigLoader.FullScreenSize = true;
         }
 
 
@@ -340,10 +248,10 @@ namespace rtsp_camera_viewer
         //Workaround to apply --aout=directsound will not work in VLC4.
         private void btnAudio_Click(object sender, EventArgs e)
         {
-            if (AudioEnabled == true)
+            if (ConfigLoader.AudioEnabled == true)
             {
                 //Disable Audio.
-                AudioEnabled = false;
+                ConfigLoader.AudioEnabled = false;
                 btnAudio.Text = "Enable Audio";
                 foreach (VideoView cam in vlc_list)
                 {
@@ -353,9 +261,9 @@ namespace rtsp_camera_viewer
             else
             {
                 //Enable Audio.
-                AudioEnabled = true;
+                ConfigLoader.AudioEnabled = true;
                 btnAudio.Text = "Disable Audio";
-                if (FullScreenSize)
+                if (ConfigLoader.FullScreenSize)
                 {
                     vlc_list.FirstOrDefault(cam => cam.Visible).MediaPlayer.Volume = 100;
                 }
@@ -412,12 +320,12 @@ namespace rtsp_camera_viewer
         {
             if (CamerasEnabled)
             {
-                if (FullScreenSize)
+                if (ConfigLoader.FullScreenSize)
                 {
                     Rectangle CamPanelRec = new Rectangle(0, LocYStart, Width, Height); // 80 offset to exclude buttons.
                     if (CamPanelRec.Contains(RelativePoint))
                     {
-                        ResizeVlcControls();
+                        VlcResize();
                     }
                 }
                 else
@@ -436,7 +344,7 @@ namespace rtsp_camera_viewer
 
         private void Form1_Resize(object sender, EventArgs e)
         {
-            ResizeVlcControls();
+            VlcResize();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -493,7 +401,7 @@ namespace rtsp_camera_viewer
                         Logger.LogMessage("Camera not playing - refreshing source: " + index.ToString());
                         CameraOff(index);
                         RefreshCamera(index);
-                        ResizeVlcControls();
+                        VlcResize();
                     }
                 }
                 catch (Exception ex)

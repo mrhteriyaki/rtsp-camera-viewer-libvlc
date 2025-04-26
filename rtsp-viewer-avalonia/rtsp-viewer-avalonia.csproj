@@ -23,4 +23,8 @@
     <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.3" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\rtsp-camera-viewer-common\rtsp-camera-viewer-common.csproj" />
+  </ItemGroup>
 </Project>

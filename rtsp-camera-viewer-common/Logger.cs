@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace rtsp_camera_viewer
+namespace rtsp_camera_viewer_common
 {
     public static class Logger
     {

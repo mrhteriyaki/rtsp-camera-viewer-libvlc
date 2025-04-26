@@ -10,52 +10,23 @@ namespace rtsp_camera_viewer_common
 {
     public class SQLFunctions
     {
-        public static List<CameraInfo> GetCameraList()
+        public static List<CameraInfo> GetCameraList(string ConnString, string QueryString)
         {
-            string sqlconn = "";
-            string selectquery = "";
-
-            if(File.Exists("sqlconfig.ini"))
-            { 
-                foreach(string line in File.ReadAllLines("sqlconfig.ini"))
-                {
-                    if(line.ToLower().StartsWith("data source="))
-                    {
-                        sqlconn = line;
-                    }
-                    else if(line.ToLower().StartsWith("select"))
-                    {
-                        selectquery = line;
-                    }    
-                }
-            }
-            else
-            {
-                throw new Exception("No sqlconfig.ini file found.");
-            }
-            if(string.IsNullOrEmpty(sqlconn))
-            {
-                throw new Exception("Missing sql connection string.");
-            }
-            if (string.IsNullOrEmpty(selectquery))
-            {
-                throw new Exception("Missing sql select statement string.");
-            }
-
+       
             List<CameraInfo> CameraSourceList = new List<CameraInfo>();
-            SqlConnection SQLConn = new SqlConnection(sqlconn);
+            SqlConnection SQLConn = new SqlConnection(ConnString);
             SQLConn.Open();
-            SqlCommand Sqlcmd = new SqlCommand(selectquery, SQLConn);
+            SqlCommand Sqlcmd = new SqlCommand(QueryString, SQLConn);
             SqlDataReader SR = Sqlcmd.ExecuteReader();
             while (SR.Read())
             {
-                if (string.IsNullOrEmpty(SR[0].ToString()))
+                if (string.IsNullOrEmpty(SR.GetString(0)))
                 {
                     Logger.LogMessage("RTSP Source Missing");
                 }
                 else
                 {
-                    CameraSourceList.Add(new CameraInfo(SR[0].ToString(), (int)SR[1]));
+                    CameraSourceList.Add(new CameraInfo(SR.GetString(0), SR.GetInt32(1)));
                 }
             }
             SQLConn.Close();

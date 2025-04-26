@@ -35,6 +35,7 @@
             btnAudio = new System.Windows.Forms.Button();
             btnM = new System.Windows.Forms.Button();
             tmrWatch = new System.Windows.Forms.Timer(components);
+            btnSettings = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // btnOff
@@ -90,7 +91,7 @@
             btnM.Name = "btnM";
             btnM.Size = new System.Drawing.Size(35, 35);
             btnM.TabIndex = 10;
-            btnM.Text = "M";
+            btnM.Text = "⬜";
             btnM.UseVisualStyleBackColor = false;
             btnM.Click += btnM_Click;
             // 
@@ -99,12 +100,28 @@
             tmrWatch.Interval = 15000;
             tmrWatch.Tick += tmrWatch_Tick;
             // 
+            // btnSettings
+            // 
+            btnSettings.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            btnSettings.BackColor = System.Drawing.Color.Black;
+            btnSettings.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnSettings.ForeColor = System.Drawing.Color.White;
+            btnSettings.Location = new System.Drawing.Point(571, 0);
+            btnSettings.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            btnSettings.Name = "btnSettings";
+            btnSettings.Size = new System.Drawing.Size(61, 35);
+            btnSettings.TabIndex = 11;
+            btnSettings.Text = "Settings";
+            btnSettings.UseVisualStyleBackColor = false;
+            btnSettings.Click += btnSettings_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.Color.Black;
             ClientSize = new System.Drawing.Size(672, 281);
+            Controls.Add(btnSettings);
             Controls.Add(btnM);
             Controls.Add(btnOff);
             Controls.Add(btnRefresh);
@@ -126,6 +143,7 @@
         internal System.Windows.Forms.Button btnAudio;
         internal System.Windows.Forms.Button btnM;
         private System.Windows.Forms.Timer tmrWatch;
+        internal System.Windows.Forms.Button btnSettings;
     }
 }
 

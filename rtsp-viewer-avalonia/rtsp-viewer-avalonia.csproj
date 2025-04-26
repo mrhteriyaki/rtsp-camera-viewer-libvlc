@@ -26,5 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\rtsp-camera-viewer-common\rtsp-camera-viewer-common.csproj" />
+    <ProjectReference Include="..\viewer-settings\viewer-settings.csproj" />
   </ItemGroup>
 </Project>

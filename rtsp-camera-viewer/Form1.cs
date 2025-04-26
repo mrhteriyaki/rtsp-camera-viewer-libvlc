@@ -35,8 +35,7 @@ namespace rtsp_camera_viewer
         private VideoView[] vlc_list;
         WindowsAPI WPAI;
 
-        const int LocXStart = 0;
-        const int LocYStart = 35;
+        
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -139,8 +138,8 @@ namespace rtsp_camera_viewer
             }
             ConfigLoader.FullScreenSize = false; // Clear fullscreen property.
 
-            int LocX = LocXStart;
-            int LocY = LocYStart;
+            int LocX = ConfigLoader.LocXStart;
+            int LocY = ConfigLoader.LocYStart;
 
             // Set number of columns for land/port.
             //            int ConfigLoader.MaxColumns = MaxCols;
@@ -220,9 +219,16 @@ namespace rtsp_camera_viewer
                     RowCount++;
                     LocY += ViewSize.Height + 5; //5px split between panels.
                     ColumnCount = 0;
-                    LocX = LocXStart;
+                    LocX = ConfigLoader.LocXStart;
                 }
             }
+
+            btnAudio.BringToFront();
+            btnRefresh.BringToFront();
+            btnOff.BringToFront();
+            btnSettings.BringToFront();
+            btnM.BringToFront();
+
         }
 
         private void EnableFullScreen(VideoView vlc_control)
@@ -322,7 +328,7 @@ namespace rtsp_camera_viewer
             {
                 if (ConfigLoader.FullScreenSize)
                 {
-                    Rectangle CamPanelRec = new Rectangle(0, LocYStart, Width, Height); // 80 offset to exclude buttons.
+                    Rectangle CamPanelRec = new Rectangle(0, ConfigLoader.LocYStart, Width, Height); // 80 offset to exclude buttons.
                     if (CamPanelRec.Contains(RelativePoint))
                     {
                         VlcResize();
@@ -332,7 +338,7 @@ namespace rtsp_camera_viewer
                 {
                     for (int i = 0; i < vlc_list.Length; i++)
                     {
-                        Rectangle VlcRec = new Rectangle(vlc_list[i].Location.X, vlc_list[i].Location.Y + LocYStart, vlc_list[i].Width, vlc_list[i].Height);
+                        Rectangle VlcRec = new Rectangle(vlc_list[i].Location.X, vlc_list[i].Location.Y + ConfigLoader.LocYStart, vlc_list[i].Width, vlc_list[i].Height);
                         if (VlcRec.Contains(RelativePoint))
                         {
                             EnableFullScreen(vlc_list[i]);
@@ -412,7 +418,11 @@ namespace rtsp_camera_viewer
             }
         }
 
+        
 
-
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            ConfigLoader.OpenSettingsApp();
+        }
     }
 }

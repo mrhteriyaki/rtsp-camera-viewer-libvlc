@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="viewer_settings.MainWindow"
+        Title="Viewer Settings"
+		Width="500">
+	<StackPanel Margin="10" Spacing="12">
+		<TextBlock Text="Viewer Settings - Changes require a restart to apply." Grid.Column="0" VerticalAlignment="Center"/>
+
+		<Grid ColumnDefinitions="110,50">
+			<TextBlock Text="Max Columns:" Grid.Column="0" VerticalAlignment="Center"/>
+			<TextBox x:Name="txtMaxCols" Grid.Column="1" />
+		</Grid>
+
+		<CheckBox x:Name="chkOffsetButtons" Content="Buttons overlap image area" Margin="0,0,0,10" HorizontalAlignment="Left"/>
+
+		<Grid ColumnDefinitions="75,75">
+			<RadioButton x:Name="rbtLocal" GroupName="Sources" Content="Local" Grid.Column="0" Checked="Source_Changed"/>
+			<RadioButton x:Name="rbtSql" GroupName="Sources" Content="SQL" Grid.Column="1" Checked="Source_Changed"/>
+		</Grid>
+
+		<StackPanel x:Name="spSql">
+			<Grid ColumnDefinitions="125,*">
+				<TextBlock Text="SQL Connection:" Grid.Column="0" VerticalAlignment="Center"/>
+				<TextBox x:Name="txtSql" Grid.Column="1" />
+			</Grid>
+			<Grid ColumnDefinitions="100,*">
+				<TextBlock Text="SQL Query:" Grid.Column="0" VerticalAlignment="Center"/>
+				<TextBox x:Name="txtQuery" Grid.Column="1" />
+			</Grid>
+		</StackPanel>
+
+		<StackPanel x:Name="spLocalSources">
+			<TextBlock Text="Current sources:"/>
+			<ListBox Name="lbxStreams" Margin="10"></ListBox>
+			<Button Content="Remove Selected" Click="OnRemovedClicked" />
+		</StackPanel>
+
+		<Grid x:Name="gridSources" ColumnDefinitions="*,10,4*,10,50">
+			<TextBlock Text="New Source:" Grid.Column="0" VerticalAlignment="Center"/>
+			<TextBox x:Name="txtSource" Grid.Column="2" />
+			<Button Content="Add" Grid.Column="4" Click="OnAddClicked" />
+		</Grid>
+
+		<Button Content="Save" HorizontalAlignment="Right" Click="OnSaveClicked" />
+
+	</StackPanel>
+</Window>

@@ -1,4 +1,5 @@
 ﻿using LibVLCSharp.Shared;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace rtsp_camera_viewer_common
@@ -10,47 +11,61 @@ namespace rtsp_camera_viewer_common
         public static int MaxColumns = 3;
         public static bool AudioEnabled = false;
         public static bool FullScreenSize = false;
-        
+
+        public static int LocXStart = 0;
+        public static int LocYStart = 35;
 
         public static void LoadStreamList()
         {
-            if (File.Exists("sqlconfig.ini"))
+            if (File.Exists(ConfigConstant.str_cf_file))
             {
-                //Use SQL lookup.
-                CameraSourceList = SQLFunctions.GetCameraList();
-                if (File.Exists("config.ini"))
+                //Load camera list from config.ini.
+                bool sqlusage = false;
+                string sqlconn = "";
+                string sqlquery = "";
+
+                foreach (string cl in File.ReadLines(ConfigConstant.str_cf_file))
                 {
-                    foreach (string cl in File.ReadLines("config.ini"))
+                    if (cl.StartsWith(ConfigConstant.str_camera))
                     {
-                        //Get Camera Column setting.
-                        if (cl.StartsWith("maxcols="))
+                        CameraSourceList.Add(new CameraInfo(GetValue(cl)));
+                    }
+                    else if (cl.StartsWith(ConfigConstant.str_maxcols))
+                    {
+                        MaxColumns = int.Parse(GetValue(cl));
+                    }
+                    else if (cl.StartsWith(ConfigConstant.str_connstring))
+                    {
+                        sqlusage = true;
+                        sqlconn = GetValue(cl);
+                    }
+                    else if (cl.StartsWith(ConfigConstant.str_sqlquery))
+                    {
+                        sqlquery = GetValue(cl);
+                    }
+                    else if (cl.StartsWith(ConfigConstant.str_overlap))
+                    {
+                        if(GetValue(cl) == "1")
                         {
-                            MaxColumns = int.Parse(cl.Substring(8));
+                            LocYStart = 0;
                         }
                     }
                 }
-            }
-            else if (File.Exists("config.ini"))
-            {
-                //Load camera list from config.ini.
 
-                foreach (string cl in File.ReadLines("config.ini"))
+                if (sqlusage)
                 {
-                    if (cl.StartsWith("camera="))
-                    {
-                        CameraSourceList.Add(new CameraInfo(cl.Substring(7)));
-                    }
-
-                    if (cl.StartsWith("maxcols="))
-                    {
-                        MaxColumns = int.Parse(cl.Substring(8));
-                    }
+                    CameraSourceList = SQLFunctions.GetCameraList(sqlconn, sqlquery);
                 }
             }
             else
             {
-                throw new Exception("No config for video sources.");
+                ConfigLoader.OpenSettingsApp();
             }
+        }
+
+        public static string GetValue(string raw)
+        {
+            return raw.Substring(raw.IndexOf("=") + 1);
         }
 
         public static void VlcInit()
@@ -87,8 +102,22 @@ namespace rtsp_camera_viewer_common
             return rows;
         }
 
-        
-       
+        public static void OpenSettingsApp()
+        {
+            string runningPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            string exePath = Path.Join(Path.GetDirectoryName(runningPath), "viewer-settings.exe");
+
+            if (File.Exists(exePath))
+            {
+                Process.Start(exePath);
+            }
+            else
+            {
+                throw new Exception($"Missing File at {exePath}");
+            }
+        }
+
 
     }
 }

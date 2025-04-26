@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rtsp-viewer-avalonia", "rts
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rtsp-camera-viewer-common", "rtsp-camera-viewer-common\rtsp-camera-viewer-common.csproj", "{EFED6F5B-25FE-4336-975A-5042791C811D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "viewer-settings", "viewer-settings\viewer-settings.csproj", "{D7D7647B-1CCD-48BC-ABEE-3E3BB8158659}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{EFED6F5B-25FE-4336-975A-5042791C811D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFED6F5B-25FE-4336-975A-5042791C811D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFED6F5B-25FE-4336-975A-5042791C811D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7D7647B-1CCD-48BC-ABEE-3E3BB8158659}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7D7647B-1CCD-48BC-ABEE-3E3BB8158659}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7D7647B-1CCD-48BC-ABEE-3E3BB8158659}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7D7647B-1CCD-48BC-ABEE-3E3BB8158659}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

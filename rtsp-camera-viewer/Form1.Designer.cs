@@ -85,7 +85,7 @@
             btnM.BackColor = System.Drawing.Color.Black;
             btnM.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             btnM.ForeColor = System.Drawing.Color.White;
-            btnM.Location = new System.Drawing.Point(1445, 0);
+            btnM.Location = new System.Drawing.Point(633, 0);
             btnM.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             btnM.Name = "btnM";
             btnM.Size = new System.Drawing.Size(35, 35);
@@ -104,7 +104,7 @@
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.Color.Black;
-            ClientSize = new System.Drawing.Size(1484, 761);
+            ClientSize = new System.Drawing.Size(672, 281);
             Controls.Add(btnM);
             Controls.Add(btnOff);
             Controls.Add(btnRefresh);

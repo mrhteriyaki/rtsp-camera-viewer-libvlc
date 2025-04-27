@@ -9,8 +9,6 @@ Displays multiple video streams in a grid with quick one click fullscreen access
 - Auto sizes grid to fill window.
 - Rotation Supported (90,180,270 Degrees)
 
-![layout](Images/Layout.PNG)  
-
 
 ## Setup  
 Add video streams using the settings tool.
@@ -18,7 +16,7 @@ Example source path is: rtsp://1.2.3.4:554/s0
 
 ![settings](Images/Settings.PNG)  
 
-## SQL Integration  
+## SQL Feed Integration  
 Camera feed source can be queried from SQL Server.
 
 Example Connection String:

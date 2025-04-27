@@ -418,8 +418,6 @@ namespace rtsp_camera_viewer
             }
         }
 
-        
-
         private void btnSettings_Click(object sender, EventArgs e)
         {
             ConfigLoader.OpenSettingsApp();

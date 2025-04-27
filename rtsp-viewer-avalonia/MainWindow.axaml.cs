@@ -1,9 +1,10 @@
 using Avalonia.Controls;
 using LibVLCSharp.Shared;
+using LibVLCSharp.Avalonia;
+
 using System.IO;
 using System;
 using System.Collections.Generic;
-using LibVLCSharp.Avalonia;
 
 using Avalonia.Interactivity;
 using System.Linq;
@@ -16,6 +17,7 @@ using Avalonia;
 using Avalonia.Media;
 using System.Runtime.InteropServices;
 using rtsp_camera_viewer_common;
+using System.Threading;
 
 
 namespace rtsp_viewer_avalonia
@@ -26,7 +28,7 @@ namespace rtsp_viewer_avalonia
 
         int currentCell = 0;
         List<int> skipCellIndex = [];
-        
+
         class VideoViewLocal
         {
             public VideoView videoView;
@@ -42,6 +44,68 @@ namespace rtsp_viewer_avalonia
             this.Opened += InitCams;
         }
 
+        public void OnSettingsClicked(object sender, RoutedEventArgs args)
+        {
+            ConfigLoader.OpenSettingsApp();
+        }
+
+        public void EnableAudioClicked(object sender, RoutedEventArgs args)
+        {
+            if (ConfigLoader.AudioEnabled == true)
+            {
+                //Disable Audio.
+                ConfigLoader.AudioEnabled = false;
+                btnAudio.Content = "Enable Audio";
+                foreach (VideoView cam in vlc_list)
+                {
+                    cam.MediaPlayer.Volume = 0;
+                }
+            }
+            else
+            {
+                //Enable Audio.
+                ConfigLoader.AudioEnabled = true;
+                btnAudio.Content = "Disable Audio";
+                if (ConfigLoader.FullScreenSize)
+                {
+                    vlc_list.FirstOrDefault(cam => cam.IsVisible).MediaPlayer.Volume = 100;
+                }
+                else
+                {
+                    foreach (VideoView cam in vlc_list)
+                    {
+                        cam.MediaPlayer.Volume = 100;
+                    }
+                }
+            }
+        }
+
+        public void RefreshClicked(object sender, RoutedEventArgs args)
+        {
+            //RefreshCameras();
+            //Problems disposing of object.
+            for (int Index = 0; Index < vlc_list.Length; Index++)
+            {
+                vlc_list[Index].MediaPlayer.Dispose();
+            }
+            try
+            {
+                //error occurs here.
+                MainPanel.Children.Clear();
+            }
+            catch
+            {
+                
+            }
+            
+           //RefreshCameras();
+        }
+
+        public void OffClicked(object sender, RoutedEventArgs args)
+        {
+            //MainPanel.Children.Clear();
+            
+        }
 
         void InitCams(object sender, EventArgs e)
         {
@@ -74,10 +138,10 @@ namespace rtsp_viewer_avalonia
             Console.WriteLine("Setup vlc_list");
 
             vlc_list = new VideoView[ConfigLoader.CameraSourceList.Count];
-            //rotateList = new bool[ConfigLoader.CameraSourceList.Count];
-
 
             Console.WriteLine("Setup grid");
+
+
             for (int i = 0; i < ConfigLoader.MaxColumns; i++)
             {
                 MainPanel.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
@@ -88,11 +152,21 @@ namespace rtsp_viewer_avalonia
             {
                 MainPanel.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             }
+          
 
+            //Add Buttons.
+
+            if (ConfigLoader.LocYStart == 0) //No offset.
+            {
+
+            }
+
+            
             Console.WriteLine("Start source refresh");
             RefreshCameras();
         }
 
+      
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -123,7 +197,6 @@ namespace rtsp_viewer_avalonia
         {
             //CameraOff();
             //CamerasEnabled = true;
-
             MainPanel.Children.Clear();
             for (int Index = 0; Index < ConfigLoader.CameraSourceList.Count; Index++)
             {
@@ -136,7 +209,7 @@ namespace rtsp_viewer_avalonia
         public void RefreshCamera(int Index)
         {
             CameraInfo Camera = ConfigLoader.CameraSourceList[Index];
-            
+
             LibVLC _LibVLC = new LibVLC(Camera.GetVlcArgs().ToArray());
             vlc_list[Index] = new VideoView();
             vlc_list[Index].MediaPlayer = new MediaPlayer(_LibVLC);
@@ -176,6 +249,8 @@ namespace rtsp_viewer_avalonia
                 skipCellIndex.Add(rowVal + (ConfigLoader.MaxColumns * 2) + 1);
             }
 
+            
+            
             MainPanel.Children.Add(vlc_list[Index]);
 
             vlc_list[Index].MediaPlayer.Volume = 0;
@@ -223,7 +298,6 @@ namespace rtsp_viewer_avalonia
 
                 ConfigLoader.FullScreenSize = true;
             }
-
         }
 
         void SetGridFullscreen(VideoView control)
@@ -246,7 +320,7 @@ namespace rtsp_viewer_avalonia
         }
         void RestoreNormalGrid()
         {
-            if(vlc_list == null)
+            if (vlc_list == null)
             {
                 return;
             }
@@ -254,14 +328,7 @@ namespace rtsp_viewer_avalonia
             foreach (VideoView Cam in vlc_list)
             {
                 Cam.IsVisible = true;
-                if (ConfigLoader.AudioEnabled == true)
-                {
-                    Cam.MediaPlayer.Volume = 100;
-                }
-                else
-                {
-                    Cam.MediaPlayer.Volume = 0;
-                }
+                Cam.MediaPlayer.Volume = ConfigLoader.AudioEnabled ? 100 : 0;
             }
 
             for (int i = 0; i < MainPanel.RowDefinitions.Count; i++)

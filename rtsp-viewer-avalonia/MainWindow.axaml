@@ -5,6 +5,17 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="rtsp_viewer_avalonia.MainWindow"
         Title="rtsp_viewer_avalonia">
-	<Grid x:Name="MainPanel" Margin="20">
-	</Grid>
+	<DockPanel>
+		<Grid DockPanel.Dock="Top" Margin="5">
+			<Grid ColumnDefinitions="105,70,50" Column="0">
+				<Button x:Name="btnAudio" Content="Enable Audio" Grid.Column="0" Click="EnableAudioClicked"/>
+				<!-- Disabled - problems disposing for refresh.
+				<Button Content="Refresh" Grid.Column="1" Click="RefreshClicked"/>
+				<Button Content="Off" Grid.Column="2" Click="OffClicked"/> -->
+			</Grid>
+			<Button HorizontalAlignment="Right" Content="Settings" Grid.Column="1" Click="OnSettingsClicked"/>
+		</Grid>
+
+		<Grid x:Name="MainPanel"></Grid>
+	</DockPanel>
 </Window>

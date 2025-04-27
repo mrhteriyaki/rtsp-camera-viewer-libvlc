@@ -14,7 +14,7 @@
 			<TextBox x:Name="txtMaxCols" Grid.Column="1" />
 		</Grid>
 
-		<CheckBox x:Name="chkOffsetButtons" Content="Buttons overlap image area" Margin="0,0,0,10" HorizontalAlignment="Left"/>
+		<CheckBox x:Name="chkOffsetButtons" Content="Buttons overlap image area (Winforms Only)" Margin="0,0,0,10" HorizontalAlignment="Left"/>
 
 		<Grid ColumnDefinitions="75,75">
 			<RadioButton x:Name="rbtLocal" GroupName="Sources" Content="Local" Grid.Column="0" Checked="Source_Changed"/>

@@ -14,6 +14,7 @@ namespace rtsp_camera_viewer_common
 
         public static int LocXStart = 0;
         public static int LocYStart = 35;
+        public static bool buttonOverlay = false;
 
         public static void LoadStreamList()
         {
@@ -48,6 +49,7 @@ namespace rtsp_camera_viewer_common
                         if(GetValue(cl) == "1")
                         {
                             LocYStart = 0;
+                            buttonOverlay = true;
                         }
                     }
                 }
@@ -79,6 +81,7 @@ namespace rtsp_camera_viewer_common
                 Core.Initialize();
             }
         }
+
 
 
         public static int GetCellCount()
